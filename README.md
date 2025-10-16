@@ -24,15 +24,87 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Meillor Backend - A NestJS application with Supabase integration for managing coins and other resources.
 
-## Project setup
+## Project Structure
+
+```
+src/
+├── main.ts                 # Application entry point
+├── app.module.ts          # Root module
+├── auth/                  # Authentication module
+│   ├── guards/           # JWT guards
+│   └── strategies/       # Passport strategies
+├── database/             # Database module (Supabase)
+│   ├── database.service.ts
+│   └── database.module.ts
+└── coins/                # Coins module
+    ├── coins.controller.ts
+    ├── coins.service.ts
+    ├── coins.module.ts
+    ├── entities/         # Entity definitions
+    │   └── coin.entity.ts
+    └── dto/              # Data Transfer Objects
+        ├── create-coin.dto.ts
+        ├── update-coin.dto.ts
+        └── query-coins.dto.ts
+```
+
+## Environment Setup
+
+1. Create a `.env` file in the root directory with the following variables:
+
+```env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
+JWT_SECRET=your_jwt_secret_key
+PORT=3005
+```
+
+2. Set up your Supabase database with the coins table schema (see below).
+
+## Coins Table Schema
+
+```sql
+create table public.coins (
+  id uuid not null default gen_random_uuid (),
+  name text null,
+  sub_name text null,
+  category text null,
+  reference text null,
+  material text null,
+  origin_country text null,
+  year numeric null,
+  condition text null,
+  gross_weight numeric null,
+  net_weight numeric null,
+  prime_percent numeric null,
+  price_eur numeric null,
+  taxation text null,
+  vault_location text null,
+  lsp_eligible boolean null,
+  is_main_list boolean null,
+  is_featured boolean null,
+  is_deliverable boolean null,
+  is_new boolean null,
+  is_sold boolean null,
+  front_picture_url text null,
+  product_url text null,
+  ai_score numeric null,
+  scraped_at timestamp with time zone null,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone null,
+  constraint coins_pkey primary key (id)
+) TABLESPACE pg_default;
+```
+
+## Installation
 
 ```bash
 $ npm install
 ```
 
-## Compile and run the project
+## Running the Application
 
 ```bash
 # development
@@ -45,7 +117,102 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
+## API Endpoints
+
+### Coins API
+
+#### Get All Coins (with pagination, search, and filtering)
+```
+GET /coins
+```
+
+**Query Parameters:**
+- `page` (number, default: 1) - Page number
+- `limit` (number, default: 10, max: 100) - Items per page
+- `search` (string) - Search across name, sub_name, category, reference, material, origin_country
+- `sortBy` (string, default: 'created_at') - Field to sort by
+- `sortOrder` ('asc' | 'desc', default: 'desc') - Sort direction
+- `category` (string) - Filter by category
+- `material` (string) - Filter by material
+- `origin_country` (string) - Filter by origin country
+- `condition` (string) - Filter by condition
+- `minYear` (number) - Minimum year filter
+- `maxYear` (number) - Maximum year filter
+- `minPrice` (number) - Minimum price filter
+- `maxPrice` (number) - Maximum price filter
+- `is_sold` ('true' | 'false') - Filter by sold status
+- `is_featured` ('true' | 'false') - Filter by featured status
+- `is_new` ('true' | 'false') - Filter by new status
+- `lsp_eligible` ('true' | 'false') - Filter by LSP eligibility
+
+**Example:**
+```bash
+GET /coins?page=1&limit=20&search=gold&sortBy=price_eur&sortOrder=desc&is_sold=false
+```
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Gold Coin",
+      "price_eur": 1500,
+      ...
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 150,
+    "totalPages": 8
+  }
+}
+```
+
+#### Get Coin by ID
+```
+GET /coins/:id
+```
+
+#### Get Coins Statistics
+```
+GET /coins/statistics
+```
+
+**Response:**
+```json
+{
+  "total": 150,
+  "sold": 45,
+  "featured": 12,
+  "new": 8
+}
+```
+
+#### Create Coin (Protected)
+```
+POST /coins
+Authorization: Bearer <jwt_token>
+```
+
+**Body:** All fields from the coins table schema (see CreateCoinDto)
+
+#### Update Coin (Protected)
+```
+PATCH /coins/:id
+Authorization: Bearer <jwt_token>
+```
+
+**Body:** Partial update - any fields from the coins table schema
+
+#### Delete Coin (Protected)
+```
+DELETE /coins/:id
+Authorization: Bearer <jwt_token>
+```
+
+## Testing
 
 ```bash
 # unit tests
@@ -57,6 +224,42 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running in minutes
+- **[Architecture Guidelines](docs/ARCHITECTURE.md)** - Project structure and best practices
+- **[API Examples](docs/API_EXAMPLES.md)** - Complete API usage examples with code
+- **[Environment Setup](docs/ENV_EXAMPLE.md)** - Environment variable configuration
+- **[Vercel Deployment](docs/VERCEL_DEPLOYMENT.md)** - Deploy to Vercel in minutes
+
+## Key Features
+
+✨ **Professional Project Structure**
+- Modular architecture with clear separation of concerns
+- Centralized database service for Supabase integration
+- Reusable patterns for adding new modules
+
+🔒 **Authentication & Security**
+- JWT-based authentication with Supabase
+- Protected routes using guards
+- Input validation on all endpoints
+
+📊 **Advanced Querying**
+- Pagination support (configurable page size)
+- Full-text search across multiple fields
+- Advanced filtering (category, material, price range, year range, etc.)
+- Flexible sorting (any field, ascending/descending)
+- Boolean filters (sold, featured, new, etc.)
+
+🎯 **Production Ready**
+- Global validation pipes
+- Comprehensive error handling
+- Type-safe DTOs and entities
+- CORS enabled
+- Environment-based configuration
 
 ## Resources
 
